@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Network xmlns="http://www.xmos.com"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.xmos.com http://www.xmos.com">
+  <Declarations>
+    <Declaration>tileref tile[2]</Declaration>
+    <Declaration>tileref usb_tile</Declaration>
+  </Declarations>
+
+  <Packages>
+    <!-- First chip, with boot flash and FreeRTOS -->
+    <Package id="0" Type="XS3-UnA-1024-QF60A">
+      <Nodes>
+        <!-- Note that this clock setting is overridden by the app by writing directly to the PLL -->
+        <Node Id="0" InPackageId="0" Type="XS3-L16A-1024" SystemFrequency="600MHz" Oscillator="24MHz" referencefrequency="100MHz">
+          <Boot>
+            <Source Location="bootFlash"/>
+            <Bootee NodeId="1"/>
+          </Boot>
+          <Tile Number="0" Reference="tile[0]">
+            <!-- QSPI ports -->
+            <Port Location="XS1_PORT_1B"  Name="PORT_SQI_CS_0"/>
+            <Port Location="XS1_PORT_1C"  Name="PORT_SQI_SCLK_0"/>
+            <Port Location="XS1_PORT_4B"  Name="PORT_SQI_SIO_0"/>
+
+            <!-- SPI ports -->
+            <Port Location="XS1_PORT_1A"  Name="PORT_SSB"/>
+            <Port Location="XS1_PORT_1C"  Name="PORT_SQI_SCLK_0"/>
+            <Port Location="XS1_PORT_1D"  Name="PORT_SPI_MOSI"/>
+            <Port Location="XS1_PORT_1P"  Name="PORT_SPI_MISO"/>
+
+            <!-- I2C ports -->
+            <Port Location="XS1_PORT_1N"  Name="PORT_I2C_SCL"/>
+            <Port Location="XS1_PORT_1O"  Name="PORT_I2C_SDA"/>
+
+            <!-- GPIO ports -->
+            <Port Location="XS1_PORT_8C"  Name="PORT_GPO"/>
+            <Port Location="XS1_PORT_8D"  Name="PORT_GPI"/>
+
+            <!-- Used for keeping XUA happy only -->
+            <Port Location="XS1_PORT_1G"  Name="PORT_NOT_IN_PACKAGE_0"/>
+
+          </Tile>
+          <Tile Number="1" Reference="tile[1]">
+
+            <!-- MIC related ports -->
+            <Port Location="XS1_PORT_1G"  Name="PORT_PDM_CLK"/>
+            <Port Location="XS1_PORT_1F"  Name="PORT_PDM_DATA"/>
+
+            <!-- Audio ports -->
+            <Port Location="XS1_PORT_1D"  Name="PORT_MCLK_IN_OUT"/>
+            <Port Location="XS1_PORT_1C"  Name="PORT_I2S_BCLK"/>
+            <Port Location="XS1_PORT_1B"  Name="PORT_I2S_LRCLK"/>
+            <Port Location="XS1_PORT_1A"  Name="I2S_MIC_DATA"/>
+            <Port Location="XS1_PORT_1K"  Name="I2S_DATA_IN"/>
+
+            <!-- Used for looping back clocks -->
+            <Port Location="XS1_PORT_1N"  Name="PORT_NOT_IN_PACKAGE_1"/>
+          </Tile>
+        </Node>
+      </Nodes>
+</Package>
+    <!-- Second package with c++ code-->
+      <Package id="1" Type="XS3-UnA-1024-QF60A">
+      <Nodes>
+        <!-- Note that this clock setting is overridden by the app by writing directly to the PLL -->
+        <Node Id="1" InPackageId="0" Type="XS3-L16A-1024" SystemFrequency="600MHz" Oscillator="24MHz" referencefrequency="100MHz">
+          <Boot>
+            <!-- boot mode 4 is not documented (where I can find), but I guess it means boot from link XL0 -->
+            <Source Location="LINK" BootMode="4"/>
+          </Boot>
+          <Tile Number="0" Reference="tile[2]">
+            <!-- Used for keeping XUA happy only -->
+            <Port Location="XS1_PORT_1G"  Name="PORT_NOT_IN_PACKAGE_0"/>
+
+          </Tile>
+          <Tile Number="1" Reference="tile[3]">
+            <!-- Used for looping back clocks -->
+            <Port Location="XS1_PORT_1N"  Name="PORT_NOT_IN_PACKAGE_1"/>
+          </Tile>
+        </Node>
+      </Nodes>
+    </Package>
+  </Packages>
+
+  <Links>
+    <!-- Single 2 wire link between two 60 pin packages (so no xscope) -->
+    <Link Encoding="2wire" Delays="6clk">
+      <LinkEndpoint NodeId="1" Link="2"/>
+      <LinkEndpoint NodeId="0" Link="2"/>
+    </Link>
+  </Links>
+  <ExternalDevices>
+    <Device NodeId="0" Tile="0" Class="SQIFlash" Name="bootFlash" Type="S25FL116K" PageSize="256" SectorSize="4096" NumPages="32768">
+      <Attribute Name="PORT_SQI_CS" Value="PORT_SQI_CS_0"/>
+      <Attribute Name="PORT_SQI_SCLK" Value="PORT_SQI_SCLK_0"/>
+      <Attribute Name="PORT_SQI_SIO" Value="PORT_SQI_SIO_0"/>
+      <Attribute Name="QE_REGISTER" Value="flash_qe_location_status_reg_0"/>
+      <!-- <Attribute Name="QE_BIT" Value="flash_qe_bit_6"/> -->
+    </Device>
+  </ExternalDevices>
+  <JTAGChain>
+    <JTAGDevice NodeId="0"/>
+    <JTAGDevice NodeId="1"/>
+  </JTAGChain>
+
+</Network>
