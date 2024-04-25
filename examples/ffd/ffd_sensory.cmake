@@ -15,6 +15,7 @@ set(SENSORY_COMMAND_NET_FILE "${FFD_SRC_ROOT}/model/${MODEL_LANGUAGE}/command-pc
 # Gather Sources
 #**********************
 file(GLOB_RECURSE APP_SOURCES ${CMAKE_CURRENT_LIST_DIR}/src/*.c )
+file(GLOB_RECURSE CPP_SOURCES ${CMAKE_CURRENT_LIST_DIR}/src/cpp_proj/*.c*)
 
 set(APP_SOURCES
     ${APP_SOURCES}
@@ -25,6 +26,7 @@ set(APP_INCLUDES
     ${CMAKE_CURRENT_LIST_DIR}/src
     ${CMAKE_CURRENT_LIST_DIR}/src/gpio_ctrl
     ${CMAKE_CURRENT_LIST_DIR}/src/power
+    ${CMAKE_CURRENT_LIST_DIR}/src/cpp_proj
 )
 set(RTOS_CONF_INCLUDES
     ${CMAKE_CURRENT_LIST_DIR}/src/rtos_conf
@@ -132,7 +134,7 @@ unset(TARGET_NAME)
 
 set(TARGET_NAME tile2_example_ffd_sensory)
 add_executable(${TARGET_NAME} EXCLUDE_FROM_ALL)
-target_sources(${TARGET_NAME} PUBLIC ${APP_SOURCES})
+target_sources(${TARGET_NAME} PUBLIC ${CPP_SOURCES})
 target_include_directories(${TARGET_NAME} PUBLIC ${APP_INCLUDES} ${RTOS_CONF_INCLUDES})
 target_compile_definitions(${TARGET_NAME} PUBLIC ${APP_COMPILE_DEFINITIONS} THIS_XCORE_TILE=2)
 target_compile_options(${TARGET_NAME} PRIVATE ${APP_COMPILER_FLAGS})
@@ -142,7 +144,7 @@ unset(TARGET_NAME)
 
 set(TARGET_NAME tile3_example_ffd_sensory)
 add_executable(${TARGET_NAME} EXCLUDE_FROM_ALL)
-target_sources(${TARGET_NAME} PUBLIC ${APP_SOURCES})
+target_sources(${TARGET_NAME} PUBLIC ${CPP_SOURCES})
 target_include_directories(${TARGET_NAME} PUBLIC ${APP_INCLUDES} ${RTOS_CONF_INCLUDES})
 target_compile_definitions(${TARGET_NAME} PUBLIC ${APP_COMPILE_DEFINITIONS} THIS_XCORE_TILE=3)
 target_compile_options(${TARGET_NAME} PRIVATE ${APP_COMPILER_FLAGS})

@@ -27,10 +27,12 @@
 #include "gpio_ctrl/gpi_ctrl.h"
 #include "gpio_ctrl/leds.h"
 #include "intent_handler/intent_handler.h"
+#include "cpp_proj/cpp_tiles_wrapper.h"
 
 #ifndef MEM_ANALYSIS_ENABLED
 #define MEM_ANALYSIS_ENABLED 0
 #endif
+
 
 void audio_pipeline_input(void *input_app_data,
                           int32_t **input_audio_frames,
@@ -102,6 +104,14 @@ void startup_task(void *arg)
 
 #if ON_TILE(1)
     gpio_gpi_init(gpio_ctx_t0);
+#endif
+
+#if ON_TILE(2)
+    robot_task_wrapperA();
+#endif
+
+#if ON_TILE(3)
+    robot_task_wrapperA();
 #endif
 
 #if ON_TILE(FS_TILE_NO)
