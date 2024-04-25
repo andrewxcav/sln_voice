@@ -24,7 +24,6 @@ set(APP_SOURCES
 set(APP_INCLUDES
     ${CMAKE_CURRENT_LIST_DIR}/src
     ${CMAKE_CURRENT_LIST_DIR}/src/gpio_ctrl
-    ${CMAKE_CURRENT_LIST_DIR}/src/intent_engine
     ${CMAKE_CURRENT_LIST_DIR}/src/power
 )
 set(RTOS_CONF_INCLUDES
@@ -131,6 +130,9 @@ unset(TARGET_NAME)
 # Merge binaries
 #**********************
 merge_binaries(example_ffd_sensory tile0_example_ffd_sensory tile1_example_ffd_sensory 1)
+# merge_binaries(example_ffd_01 tile0_example_ffd_sensory tile1_example_ffd_sensory 0 1 )
+# merge_binaries(example_ffd_12 example_ffd_01 tile2_example_ffd_sensory 1 0 )
+# merge_binaries(example_ffd_sensory example_ffd_12 tile3_example_ffd_sensory 1 1 )
 
 #**********************
 # Create run and debug targets
