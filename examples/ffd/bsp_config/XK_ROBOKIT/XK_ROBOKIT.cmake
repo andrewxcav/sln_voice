@@ -34,8 +34,8 @@ target_compile_definitions(sln_voice_app_ffd_board_support_xk_robokit
         XK_ROBOKIT=1
         PLATFORM_SUPPORTS_TILE_0=1
         PLATFORM_SUPPORTS_TILE_1=1
-        PLATFORM_SUPPORTS_TILE_2=0
-        PLATFORM_SUPPORTS_TILE_3=0
+        PLATFORM_SUPPORTS_TILE_2=1
+        PLATFORM_SUPPORTS_TILE_3=1
 
         MIC_ARRAY_CONFIG_MCLK_FREQ=24576000
         MIC_ARRAY_CONFIG_PDM_FREQ=3072000

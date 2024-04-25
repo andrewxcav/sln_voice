@@ -18,6 +18,12 @@ your application. */
 #if ON_TILE(1)
 #define configNUM_CORES                         5
 #endif
+#if ON_TILE(2)
+#define configNUM_CORES                         1
+#endif
+#if ON_TILE(3)
+#define configNUM_CORES                         1
+#endif
 
 #define configTICK_RATE_HZ                      1000
 #define configMAX_PRIORITIES                    32
@@ -50,6 +56,12 @@ your application. */
 #endif
 #if ON_TILE(1)
 #define configTOTAL_HEAP_SIZE                   (100 * 1024)
+#endif
+#if ON_TILE(2)
+#define configTOTAL_HEAP_SIZE                   (4 * 1024)
+#endif
+#if ON_TILE(3)
+#define configTOTAL_HEAP_SIZE                   (4 * 1024)
 #endif
 #define configAPPLICATION_ALLOCATED_HEAP        0
 
@@ -95,6 +107,12 @@ your application. */
 #define configTASKS_DEBUG 0
 #endif
 #if ON_TILE(1)
+#define configTASKS_DEBUG 0
+#endif
+#if ON_TILE(2)
+#define configTASKS_DEBUG 0
+#endif
+#if ON_TILE(3)
 #define configTASKS_DEBUG 0
 #endif
 
