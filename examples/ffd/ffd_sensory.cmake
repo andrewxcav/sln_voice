@@ -82,6 +82,8 @@ set(APP_COMPILE_DEFINITIONS
     configENABLE_DEBUG_PRINTF=1
     PLATFORM_USES_TILE_0=1
     PLATFORM_USES_TILE_1=1
+    PLATFORM_USES_TILE_2=1
+    PLATFORM_USES_TILE_3=1
     QSPI_FLASH_FILESYSTEM_START_ADDRESS=${FILESYSTEM_START_ADDRESS}
     QSPI_FLASH_MODEL_START_ADDRESS=${MODEL_START_ADDRESS}
     QSPI_FLASH_CALIBRATION_ADDRESS=${CALIBRATION_PATTERN_START_ADDRESS}
@@ -126,13 +128,35 @@ target_link_libraries(${TARGET_NAME} PUBLIC ${APP_COMMON_LINK_LIBRARIES})
 target_link_options(${TARGET_NAME} PRIVATE ${APP_LINK_OPTIONS} )
 unset(TARGET_NAME)
 
+
+set(TARGET_NAME tile2_example_ffd_sensory)
+add_executable(${TARGET_NAME} EXCLUDE_FROM_ALL)
+target_sources(${TARGET_NAME} PUBLIC ${APP_SOURCES})
+target_include_directories(${TARGET_NAME} PUBLIC ${APP_INCLUDES} ${RTOS_CONF_INCLUDES})
+target_compile_definitions(${TARGET_NAME} PUBLIC ${APP_COMPILE_DEFINITIONS} THIS_XCORE_TILE=2)
+target_compile_options(${TARGET_NAME} PRIVATE ${APP_COMPILER_FLAGS})
+target_link_libraries(${TARGET_NAME} PUBLIC ${APP_COMMON_LINK_LIBRARIES})
+target_link_options(${TARGET_NAME} PRIVATE ${APP_LINK_OPTIONS} )
+unset(TARGET_NAME)
+
+set(TARGET_NAME tile3_example_ffd_sensory)
+add_executable(${TARGET_NAME} EXCLUDE_FROM_ALL)
+target_sources(${TARGET_NAME} PUBLIC ${APP_SOURCES})
+target_include_directories(${TARGET_NAME} PUBLIC ${APP_INCLUDES} ${RTOS_CONF_INCLUDES})
+target_compile_definitions(${TARGET_NAME} PUBLIC ${APP_COMPILE_DEFINITIONS} THIS_XCORE_TILE=3)
+target_compile_options(${TARGET_NAME} PRIVATE ${APP_COMPILER_FLAGS})
+target_link_libraries(${TARGET_NAME} PUBLIC ${APP_COMMON_LINK_LIBRARIES})
+target_link_options(${TARGET_NAME} PRIVATE ${APP_LINK_OPTIONS} )
+unset(TARGET_NAME)
+
+
 #**********************
 # Merge binaries
 #**********************
-merge_binaries(example_ffd_sensory tile0_example_ffd_sensory tile1_example_ffd_sensory 1)
-# merge_binaries(example_ffd_01 tile0_example_ffd_sensory tile1_example_ffd_sensory 0 1 )
-# merge_binaries(example_ffd_12 example_ffd_01 tile2_example_ffd_sensory 1 0 )
-# merge_binaries(example_ffd_sensory example_ffd_12 tile3_example_ffd_sensory 1 1 )
+# merge_binaries(example_ffd_sensory tile0_example_ffd_sensory tile1_example_ffd_sensory 1)
+merge_binaries(example_ffd_01 tile0_example_ffd_sensory tile1_example_ffd_sensory 0 1 )
+merge_binaries(example_ffd_12 example_ffd_01 tile2_example_ffd_sensory 1 0 )
+merge_binaries(example_ffd_sensory example_ffd_12 tile3_example_ffd_sensory 1 1 )
 
 #**********************
 # Create run and debug targets
