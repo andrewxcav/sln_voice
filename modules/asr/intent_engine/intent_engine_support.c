@@ -16,6 +16,7 @@
 #include "platform/driver_instances.h"
 #include "intent_engine.h"
 
+#if ON_TILE(0) || ON_TILE(1)
 #if ON_TILE(ASR_TILE_NO)
 
 static StreamBufferHandle_t samples_to_engine_stream_buf = 0;
@@ -99,6 +100,7 @@ void intent_engine_intertile_task_create(uint32_t priority)
 #if ASR_TILE_NO == AUDIO_PIPELINE_OUTPUT_TILE_NO
 #if ON_TILE(ASR_TILE_NO)
 
+
 void intent_engine_samples_send_local(
         size_t frame_count,
         int32_t *processed_audio_frame)
@@ -132,3 +134,4 @@ void intent_engine_task_create(unsigned priority)
 
 #endif /* ON_TILE(ASR_TILE_NO) */
 #endif /* ASR_TILE_NO == AUDIO_PIPELINE_OUTPUT_TILE_NO */
+#endif // ON_TILE(0) || ON_TILE(1)
