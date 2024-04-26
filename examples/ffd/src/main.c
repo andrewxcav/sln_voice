@@ -189,7 +189,7 @@ void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 #endif
 
 #if ON_TILE(2)
-void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
+void main_tile2(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 {
     (void) c2;
     (void) c0;
@@ -200,7 +200,7 @@ void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 #endif
 
 #if ON_TILE(3)
-void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
+void main_tile3(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 {
     (void) c1;
     (void) c2;

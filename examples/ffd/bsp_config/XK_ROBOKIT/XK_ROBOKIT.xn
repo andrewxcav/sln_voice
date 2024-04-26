@@ -3,7 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://www.xmos.com http://www.xmos.com">
   <Type>Board</Type>
-  <Name>4MIC-FFV-4TILE</Name>
+  <Name>XK_ROBOKIT</Name>
 
   <Declarations>
     <Declaration>tileref tile[4]</Declaration>
