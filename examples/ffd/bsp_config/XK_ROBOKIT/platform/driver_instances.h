@@ -55,4 +55,9 @@ extern rtos_i2c_master_t *i2c_master_ctx;
 extern rtos_i2s_t *i2s_ctx;
 extern rtos_uart_tx_t *uart_tx_ctx;
 
+/*attempt to bring tiles 2 and 3 into the fold*/
+extern rtos_intertile_t *interpackage_ctx;
+extern rtos_intertile_t *intertile23_ctx;
+
+
 #endif /* DRIVER_INSTANCES_H_ */

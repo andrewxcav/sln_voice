@@ -29,3 +29,10 @@ rtos_i2s_t *i2s_ctx = &i2s_ctx_s;
 
 static rtos_uart_tx_t uart_tx_ctx_s;
 rtos_uart_tx_t *uart_tx_ctx = &uart_tx_ctx_s;
+
+/*attempt to bring tiles 2 and 3 into the fold*/
+static rtos_intertile_t interpackage_ctx_s;
+rtos_intertile_t *interpackage_ctx = &interpackage_ctx_s; 
+
+static rtos_intertile_t intertile23_ctx_s;
+rtos_intertile_t *intertile23_ctx = &intertile23_ctx_s; 
