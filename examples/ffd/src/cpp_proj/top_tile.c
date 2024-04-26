@@ -16,7 +16,7 @@
 
     int robot_task_wrapperA(){
 
-        cpp_mainA(interpackage_ctx, intertile23_ctx);
+        cpp_mainA(interpackage_ctx->c, intertile23_ctx->c);
         return 0;
         
     }
@@ -30,7 +30,7 @@
 
     int robot_task_wrapperB(){
 
-        cpp_mainB(intertile23_ctx);
+        cpp_mainB(intertile23_ctx->c);
         return 0;
 
     }
