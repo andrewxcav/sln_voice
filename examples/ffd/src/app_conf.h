@@ -29,7 +29,7 @@
 
 /* Enable audio response output */
 #ifndef appconfAUDIO_PLAYBACK_ENABLED
-#define appconfAUDIO_PLAYBACK_ENABLED           1
+#define appconfAUDIO_PLAYBACK_ENABLED           0
 #endif
 
 /* Intent Engine Configuration */
@@ -153,11 +153,11 @@
 #endif
 
 /* I/O and interrupt cores for Tile 0 */
+#define appconfPDM_MIC_IO_CORE                  1 /* Must be kept off core 0 with the RTOS tick ISR */
+#define appconfPDM_MIC_INTERRUPT_CORE           4 /* Must be kept off I/O cores. Best kept off core 0 with the tick ISR. */
 
 /* I/O and interrupt cores for Tile 1 */
-#define appconfPDM_MIC_IO_CORE                  1 /* Must be kept off core 0 with the RTOS tick ISR */
 #define appconfI2S_IO_CORE                      2 /* Must be kept off core 0 with the RTOS tick ISR */
-#define appconfPDM_MIC_INTERRUPT_CORE           4 /* Must be kept off I/O cores. Best kept off core 0 with the tick ISR. */
 #define appconfI2S_INTERRUPT_CORE               3 /* Must be kept off I/O cores. Best kept off core 0 with the tick ISR. */
 
 /* Task Priorities */

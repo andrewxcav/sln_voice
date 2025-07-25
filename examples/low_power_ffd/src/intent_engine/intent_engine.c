@@ -22,6 +22,18 @@
 #include "power/power_control.h"
 
 #if ON_TILE(ASR_TILE_NO)
+#ifndef led_indicate_end_of_eval
+void led_indicate_end_of_eval() {}
+#warning Create RPC if you want LED output
+#endif 
+#ifndef led_indicate_listening
+void led_indicate_listening() {}
+#warning Create RPC if you want LED output
+#endif
+#ifndef led_indicate_waiting
+void led_indicate_waiting() {}
+#warning Create RPC if you want LED output
+#endif
 
 // This define is referenced by the model source/header files.
 #ifndef ALIGNED

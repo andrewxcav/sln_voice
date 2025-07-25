@@ -275,5 +275,4 @@ void led_indicate_end_of_eval(void)
 {
     xTaskNotify(ctx_led_task, TASK_NOTIF_MASK_END_OF_EVAL, eSetBits);
 }
-
 #endif /* ON_TILE(0) */
