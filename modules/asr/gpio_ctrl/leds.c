@@ -68,6 +68,15 @@ typedef enum led_color {
     gpo_port = rtos_gpio_port(PORT_LEDS);                      \
     rtos_gpio_port_enable(gpio_ctx_t0, gpo_port);              \
 }
+#else
+#define LED_GREEN_MASK      (1<<0)
+#define LED_RED_MASK        (1<<1)
+#define LED_YELLOW_MASK     (LED_GREEN_MASK | LED_RED_MASK)
+
+#define gpo_setup()     {                                                   \
+    gpo_port = rtos_gpio_port(PORT_GPO);                                    \
+    rtos_gpio_port_enable(gpio_ctx_t0, gpo_port);                           \
+}
 #endif
 
 // Exclusively turn on the green LED. If the red LED is on, turn it off.

@@ -30,7 +30,9 @@ static int mute_status = -1;
 #define GPIO_PORT       PORT_BUTTON
 
 #else
-#define GPIO_PORT       0
+#define BUTTON_BTN_BITMASK  0x10
+#define GPIO_BITMASK        (0x10)
+#define GPIO_PORT           GPIO_TILE_0_PORT_4E
 #endif
 
 RTOS_GPIO_ISR_CALLBACK_ATTR

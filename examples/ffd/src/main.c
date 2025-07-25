@@ -12,9 +12,11 @@
 #include "stream_buffer.h"
 #include "queue.h"
 #include "event_groups.h"
+#include "rtos_intertile.h"
 
 /* Library headers */
 #include "rtos_printf.h"
+#include "rtos_mic_array.h"
 
 /* App headers */
 #include "app_conf.h"
@@ -40,6 +42,7 @@
 #ifndef MEM_ANALYSIS_ENABLED
 #define MEM_ANALYSIS_ENABLED 0
 #endif
+
 
 #if appconfI2S_ENABLED && (appconfI2S_MODE == appconfI2S_MODE_SLAVE)
 void i2s_slave_intertile()
@@ -77,9 +80,9 @@ void sw_pll_control(void *args)
     {
         sw_pll_ctx_t* i2s_callback_args = (sw_pll_ctx_t*) args;
         port_clear_buffer(i2s_callback_args->p_bclk_count);
-        port_in(i2s_callback_args->p_bclk_count);                                  // Block until BCLK transition to synchronise. Will consume up to 1/64 of a LRCLK cycle
-        uint16_t mclk_pt = port_get_trigger_time(i2s_callback_args->p_mclk_count); // Immediately sample mclk_count
-        uint16_t bclk_pt = port_get_trigger_time(i2s_callback_args->p_bclk_count); // Now grab bclk_count (which won't have changed)
+        port_in(i2s_callback_args->p_bclk_count);
+        uint16_t mclk_pt = port_get_trigger_time(i2s_callback_args->p_mclk_count);
+        uint16_t bclk_pt = port_get_trigger_time(i2s_callback_args->p_bclk_count);
 
         sw_pll_lut_do_control(i2s_callback_args->sw_pll, mclk_pt, bclk_pt);
     }
@@ -87,148 +90,63 @@ void sw_pll_control(void *args)
 #endif
 
 void audio_pipeline_input(void *input_app_data,
-                          int32_t **input_audio_frames,
-                          size_t ch_count,
-                          size_t frame_count)
+                        int32_t **input_audio_frames,
+                        size_t ch_count,
+                        size_t frame_count)
 {
     (void) input_app_data;
+    int32_t **mic_ptr = (int32_t **)(input_audio_frames + (2 * frame_count));
 
-#if !appconfUSE_I2S_INPUT
     static int flushed;
     while (!flushed) {
         size_t received;
         received = rtos_mic_array_rx(mic_array_ctx,
-                                     input_audio_frames,
+                                     mic_ptr,
                                      frame_count,
                                      0);
         if (received == 0) {
             rtos_mic_array_rx(mic_array_ctx,
-                              input_audio_frames,
+                              mic_ptr,
                               frame_count,
                               portMAX_DELAY);
             flushed = 1;
         }
     }
 
+    /*
+     * NOTE: ALWAYS receive the next frame from the PDM mics,
+     * even if USB is the current mic source. The controls the
+     * timing since usb_audio_recv() does not block and will
+     * receive all zeros if no frame is available yet.
+     */
     rtos_mic_array_rx(mic_array_ctx,
-                      input_audio_frames,
+                      mic_ptr,
                       frame_count,
                       portMAX_DELAY);
 
-#else
-        xassert(frame_count == appconfAUDIO_PIPELINE_FRAME_ADVANCE);
-        int32_t tmp[appconfAUDIO_PIPELINE_FRAME_ADVANCE][appconfAUDIO_PIPELINE_CHANNELS];
-        int32_t *tmpptr = (int32_t *)input_audio_frames;
-
-        /* I2S provides sample channel format */
-        size_t rx_count =
-        rtos_i2s_rx(i2s_ctx,
-                    (int32_t *) tmp,
-                    frame_count,
-                    portMAX_DELAY);
-
-
-        for (int i=0; i<frame_count; i++) {
-            *(tmpptr + i) = tmp[i][0];
-            *(tmpptr + i + frame_count) = tmp[i][1];
-        }
-        xassert(rx_count == frame_count);
-#endif
 }
 
 int audio_pipeline_output(void *output_app_data,
-                          int32_t **output_audio_frames,
-                          size_t ch_count,
-                          size_t frame_count)
+                        int32_t **output_audio_frames,
+                        size_t ch_count,
+                        size_t frame_count)
 {
-#if ON_TILE(AUDIO_PIPELINE_OUTPUT_TILE_NO) && appconfINTENT_ENABLED
-    intent_engine_sample_push((int32_t *)output_audio_frames, frame_count);
-#endif // ON_TILE(AUDIO_PIPELINE_OUTPUT_TILE_NO) && appconfINTENT_ENABLED
+    (void) output_app_data;
+
+#if appconfINTENT_ENABLED
+
+    int32_t ww_samples[appconfAUDIO_PIPELINE_FRAME_ADVANCE];
+    for (int j=0; j<appconfAUDIO_PIPELINE_FRAME_ADVANCE; j++) {
+        /* ASR output is first */
+        ww_samples[j] = (uint32_t) *(output_audio_frames+j);
+    }
+
+    intent_engine_sample_push(ww_samples,
+                              frame_count);
+#endif
 
     return AUDIO_PIPELINE_FREE_FRAME;
 }
-#if appconfI2S_ENABLED
-RTOS_I2S_APP_SEND_FILTER_CALLBACK_ATTR
-size_t i2s_send_upsample_cb(rtos_i2s_t *ctx, void *app_data, int32_t *i2s_frame, size_t i2s_frame_size, int32_t *send_buf, size_t samples_available)
-{
-    static int i;
-    static int32_t src_data[2][SRC_FF3V_FIR_TAPS_PER_PHASE] __attribute__((aligned(8)));
-
-    xassert(i2s_frame_size == 2);
-
-    switch (i) {
-    case 0:
-        i = 1;
-        if (samples_available >= 2) {
-            i2s_frame[0] = src_us3_voice_input_sample(src_data[0], src_ff3v_fir_coefs[2], send_buf[0]);
-            i2s_frame[1] = src_us3_voice_input_sample(src_data[1], src_ff3v_fir_coefs[2], send_buf[1]);
-            return 2;
-        } else {
-            i2s_frame[0] = src_us3_voice_input_sample(src_data[0], src_ff3v_fir_coefs[2], 0);
-            i2s_frame[1] = src_us3_voice_input_sample(src_data[1], src_ff3v_fir_coefs[2], 0);
-            return 0;
-        }
-    case 1:
-        i = 2;
-        i2s_frame[0] = src_us3_voice_get_next_sample(src_data[0], src_ff3v_fir_coefs[1]);
-        i2s_frame[1] = src_us3_voice_get_next_sample(src_data[1], src_ff3v_fir_coefs[1]);
-        return 0;
-    case 2:
-        i = 0;
-        i2s_frame[0] = src_us3_voice_get_next_sample(src_data[0], src_ff3v_fir_coefs[0]);
-        i2s_frame[1] = src_us3_voice_get_next_sample(src_data[1], src_ff3v_fir_coefs[0]);
-        return 0;
-    default:
-        xassert(0);
-        return 0;
-    }
-}
-
-RTOS_I2S_APP_RECEIVE_FILTER_CALLBACK_ATTR
-size_t i2s_send_downsample_cb(rtos_i2s_t *ctx, void *app_data, int32_t *i2s_frame, size_t i2s_frame_size, int32_t *receive_buf, size_t sample_spaces_free)
-{
-    static int i;
-    static int64_t sum[2];
-    static int32_t src_data[2][SRC_FF3V_FIR_NUM_PHASES][SRC_FF3V_FIR_TAPS_PER_PHASE] __attribute__((aligned (8)));
-
-    xassert(i2s_frame_size == 2);
-
-    switch (i) {
-    case 0:
-        i = 1;
-        sum[0] = src_ds3_voice_add_sample(0, src_data[0][0], src_ff3v_fir_coefs[0], i2s_frame[0]);
-        sum[1] = src_ds3_voice_add_sample(0, src_data[1][0], src_ff3v_fir_coefs[0], i2s_frame[1]);
-        return 0;
-    case 1:
-        i = 2;
-        sum[0] = src_ds3_voice_add_sample(sum[0], src_data[0][1], src_ff3v_fir_coefs[1], i2s_frame[0]);
-        sum[1] = src_ds3_voice_add_sample(sum[1], src_data[1][1], src_ff3v_fir_coefs[1], i2s_frame[1]);
-        return 0;
-    case 2:
-        i = 0;
-        if (sample_spaces_free >= 2) {
-            receive_buf[0] = src_ds3_voice_add_final_sample(sum[0], src_data[0][2], src_ff3v_fir_coefs[2], i2s_frame[0]);
-            receive_buf[1] = src_ds3_voice_add_final_sample(sum[1], src_data[1][2], src_ff3v_fir_coefs[2], i2s_frame[1]);
-            return 2;
-        } else {
-            (void) src_ds3_voice_add_final_sample(sum[0], src_data[0][2], src_ff3v_fir_coefs[2], i2s_frame[0]);
-            (void) src_ds3_voice_add_final_sample(sum[1], src_data[1][2], src_ff3v_fir_coefs[2], i2s_frame[1]);
-            return 0;
-        }
-    default:
-        xassert(0);
-        return 0;
-    }
-}
-
-void i2s_rate_conversion_enable(void)
-{
-#if !appconfI2S_TDM_ENABLED
-    rtos_i2s_send_filter_cb_set(i2s_ctx, i2s_send_upsample_cb, NULL);
-#endif
-    rtos_i2s_receive_filter_cb_set(i2s_ctx, i2s_send_downsample_cb, NULL);
-}
-#endif // appconfUSE_I2S_INPUT
 
 void vApplicationMallocFailedHook(void)
 {
@@ -286,9 +204,11 @@ void startup_task(void *arg)
     rtos_qspi_flash_fast_read_setup_ll(qspi_flash_ctx);
 #endif
 
-#if appconfINTENT_ENABLED && ON_TILE(ASR_TILE_NO)
+#if appconfINTENT_ENABLED && ON_TILE(ASR_TILE_NO) // This block now executes on Tile 0
     QueueHandle_t q_intent = xQueueCreate(appconfINTENT_QUEUE_LEN, sizeof(int32_t));
     intent_handler_create(appconfINTENT_MODEL_RUNNER_TASK_PRIORITY, q_intent);
+
+    // Use the standard create function
     intent_engine_create(appconfINTENT_MODEL_RUNNER_TASK_PRIORITY, q_intent);
 #endif
 
@@ -315,10 +235,10 @@ void vApplicationMinimalIdleHook(void)
     asm volatile("waiteu");
 }
 
-void tile_common_init(chanend_t c)
+void tile_common_init(chanend_t c_rpc)
 {
-    platform_init(c);
-    chanend_free(c);
+    platform_init(c_rpc);
+    chanend_free(c_rpc);
 
     xTaskCreate((TaskFunction_t) startup_task,
                 "startup_task",
@@ -331,9 +251,14 @@ void tile_common_init(chanend_t c)
     vTaskStartScheduler();
 }
 
+
 #if ON_TILE(0)
 void main_tile0(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 {
+
+    rtos_printf("main_tile%d: c0=%p c1=%p c2=%p\n", THIS_XCORE_TILE, c0, c1, c2);
+
+
     (void) c0;
     (void) c2;
     (void) c3;
@@ -345,6 +270,8 @@ void main_tile0(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 #if ON_TILE(1)
 void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
 {
+    rtos_printf("main_tile%d: c0=%p c1=%p c2=%p\n", THIS_XCORE_TILE, c0, c1, c2);
+
     (void) c1;
     (void) c2;
     (void) c3;

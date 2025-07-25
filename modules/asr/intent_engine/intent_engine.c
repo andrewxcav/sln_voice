@@ -22,6 +22,21 @@
 
 #if ON_TILE(ASR_TILE_NO)
 
+#if ON_TILE(1)
+#ifndef led_indicate_end_of_eval
+void led_indicate_end_of_eval() {}
+#warning Create RPC if you want LED output
+#endif 
+#ifndef led_indicate_listening
+void led_indicate_listening() {}
+#warning Create RPC if you want LED output
+#endif
+#ifndef led_indicate_waiting
+void led_indicate_waiting() {}
+#warning Create RPC if you want LED output
+#endif
+#endif
+
 #if ASR_SENSORY
     #define IS_KEYWORD(id)    (id == 17)
     #define IS_COMMAND(id)    (id > 0 && id != 17)

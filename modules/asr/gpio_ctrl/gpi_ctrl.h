@@ -27,7 +27,9 @@
 #define GPIO_PORT           PORT_BUTTONS
 
 #else
-#define GPIO_PORT       0
+#define BUTTON_BTN_BITMASK  0x10
+#define GPIO_BITMASK        (0x10)
+#define GPIO_PORT           PORT_GPI
 #endif
 
 void gpio_gpi_toggled_cb(uint32_t gpio_val);

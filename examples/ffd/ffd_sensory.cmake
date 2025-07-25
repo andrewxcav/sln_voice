@@ -102,7 +102,7 @@ set(APP_COMMON_LINK_LIBRARIES
     sln_voice::app::asr::gpio_ctrl
     sln_voice::app::asr::intent_engine
     sln_voice::app::asr::intent_handler
-    sln_voice::app::ffd::xk_voice_l71
+    sln_voice::app::ffd::xk_voice_sq66
     lib_src
     lib_sw_pll
 )
